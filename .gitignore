@@ -1,0 +1,21 @@
+# Gradle
+.gradle/
+build/
+**/build/
+
+# Android Studio
+.idea/
+*.iml
+
+# Kotlin
+.kotlin/
+
+# Local machine paths
+local.properties
+
+# OS files
+.DS_Store
+
+# Logs and dumps
+*.log
+*.hprof
