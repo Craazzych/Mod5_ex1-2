@@ -16,6 +16,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,11 +29,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CameraAlt
@@ -40,6 +45,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,8 +53,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -58,6 +62,8 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -68,8 +74,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
@@ -88,7 +97,15 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MaterialTheme {
+            MaterialTheme(
+                colorScheme = lightColorScheme(
+                    primary = Color(0xFF3D5AFE),
+                    secondary = Color(0xFF00A896),
+                    background = Color(0xFFF6F7FB),
+                    surface = Color.White,
+                    surfaceVariant = Color(0xFFE8ECF8)
+                )
+            ) {
                 Module5TasksApp()
             }
         }
@@ -233,9 +250,21 @@ fun Module5TasksApp(
     val photos by photoViewModel.photos.collectAsState()
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             Column {
-                TopAppBar(title = { Text("Модуль 5. Задания 1-2") })
+                TopAppBar(
+                    title = {
+                        Column {
+                            Text("Модуль 5", fontWeight = FontWeight.Bold)
+                            Text("Дневник и фотогалерея", style = MaterialTheme.typography.bodyMedium)
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = Color.White
+                    )
+                )
                 TabRow(selectedTabIndex = selectedTab) {
                     Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text("Дневник") })
                     Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text("Фото") })
@@ -300,8 +329,9 @@ fun DiaryListScreen(
     onDelete: (DiaryEntry) -> Unit
 ) {
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
-            FloatingActionButton(onClick = onCreate) {
+            FloatingActionButton(onClick = onCreate, shape = CircleShape) {
                 Icon(Icons.Default.Add, contentDescription = "Новая запись")
             }
         }
@@ -315,8 +345,8 @@ fun DiaryListScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                contentPadding = PaddingValues(20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(entries, key = { it.fileName }) { entry ->
                     DiaryEntryCard(entry, onOpen, onDelete)
@@ -344,12 +374,32 @@ fun DiaryEntryCard(
             .combinedClickable(
                 onClick = { onOpen(entry) },
                 onLongClick = { menuExpanded = true }
-            )
+            ),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(Modifier.padding(16.dp)) {
-            Text(entry.title.ifBlank { "Без заголовка" }, style = MaterialTheme.typography.titleMedium)
-            Text(date, style = MaterialTheme.typography.bodySmall)
-            Text(entry.text.take(40), style = MaterialTheme.typography.bodyMedium)
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    entry.title.ifBlank { "Без заголовка" },
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    date,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .padding(horizontal = 10.dp, vertical = 5.dp),
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
+            Text(entry.text.take(70), style = MaterialTheme.typography.bodyMedium)
             DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                 DropdownMenuItem(
                     text = { Text("Удалить") },
@@ -376,8 +426,9 @@ fun DiaryEditScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .background(MaterialTheme.colorScheme.background)
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         OutlinedTextField(
             value = title,
@@ -442,9 +493,10 @@ fun PhotoGalleryRoot(
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
-            FloatingActionButton(onClick = { takePhoto() }) {
+            FloatingActionButton(onClick = { takePhoto() }, shape = CircleShape) {
                 Icon(Icons.Default.CameraAlt, contentDescription = "Сделать фото")
             }
         }
@@ -467,9 +519,9 @@ fun PhotoGalleryRoot(
             LazyVerticalGrid(
                 columns = GridCells.Fixed(3),
                 modifier = Modifier.padding(padding),
-                contentPadding = PaddingValues(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                contentPadding = PaddingValues(14.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 items(photos, key = { it.file.absolutePath }) { photo ->
                     PhotoCell(
@@ -499,6 +551,8 @@ fun PhotoCell(photo: PhotoItem, onExport: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(1f)
+            .clip(RoundedCornerShape(18.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
         if (bitmap != null) {
             Image(
@@ -516,7 +570,12 @@ fun PhotoCell(photo: PhotoItem, onExport: () -> Unit) {
         }
         IconButton(
             onClick = { expanded = true },
-            modifier = Modifier.align(Alignment.TopEnd)
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(4.dp)
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.88f))
         ) {
             Icon(Icons.Default.MoreVert, contentDescription = "Меню")
         }
@@ -539,7 +598,22 @@ fun EmptyState(title: String, subtitle: String, modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(title, style = MaterialTheme.typography.titleMedium)
-        Text(subtitle, style = MaterialTheme.typography.bodyMedium)
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            shape = RoundedCornerShape(22.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(subtitle, style = MaterialTheme.typography.bodyMedium)
+            }
+        }
     }
 }
